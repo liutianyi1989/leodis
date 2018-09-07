@@ -22,12 +22,6 @@ type list struct {
 	length int64
 }
 
-//迭代器
-type listIter struct {
-	next      *listNode
-	direction int
-}
-
 //创建链表
 func ListCreate() *list {
 	list := &list{}
@@ -142,6 +136,52 @@ func (l *list) DeleteNode(node *listNode) {
 	l.length--
 }
 
-//func ListGetIterator(l *list, direction int) *listIter {
-//
-//}
+//迭代器
+type listIter struct {
+	next      *listNode
+	direction int
+}
+
+//获取迭代器
+func ListGetIterator(l *list, direction int) *listIter {
+	var listIter = &listIter{direction: direction}
+	if direction == AL_START_HEAD {
+		listIter.next = l.head
+	} else {
+		listIter.next = l.tail
+	}
+	return listIter
+}
+
+//释放迭代器
+func ListReleaseIterator(iter *listIter) {
+	iter = nil
+}
+
+//将迭代器恢复为头部方向
+func (iter *listIter) RewindHead(l *list) {
+	iter.next = l.head
+	iter.direction = AL_START_HEAD
+}
+
+//将迭代器恢复为尾部方向
+func (iter *listIter) RewindTail(l *list) {
+	iter.next = l.tail
+	iter.direction = AL_START_TAIL
+}
+
+//获取迭代器下一个节点
+func (iter *listIter) Next() *listNode {
+	//获取迭代器下一个节点作为当前节点
+	current := iter.next
+
+	if nil != current {
+		if iter.direction == AL_START_HEAD { //从头方向迭代
+			iter.next = current.next
+		} else { //从尾方向迭代
+			iter.next = current.pre
+		}
+	}
+
+	return current
+}
