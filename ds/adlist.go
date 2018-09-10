@@ -12,11 +12,15 @@ type listNode struct {
 	value interface{}
 }
 
+func (node *listNode) GetValue() (interface{}) {
+	return node.value
+}
+
 //链表
 type list struct {
 	head   *listNode
 	tail   *listNode
-	dup    func(ptr interface{})
+	dup    func(ptr interface{}) interface{}
 	free   func(ptr interface{})
 	match  func(ptr interface{}, key interface{}) bool
 	length int64
@@ -136,6 +140,70 @@ func (l *list) DeleteNode(node *listNode) {
 	l.length--
 }
 
+//通过key查找节点
+func (l *list) ListSearchKey(key interface{}) *listNode {
+	if nil == l {
+		return nil
+	}
+	//初始化返回节点
+	var node *listNode = nil
+	//迭代
+	iter := ListGetIterator(l, AL_START_HEAD)
+	for current:=iter.Next();nil!=current;current=iter.Next() {
+		if nil != l.match {
+			if l.match(current.GetValue(), key) {
+				node = current
+				break
+			}
+		} else {
+			if current.GetValue() == key {
+				node = current
+				break
+			}
+		}
+	}
+	ListReleaseIterator(iter)
+	return node
+}
+
+//返回链表给定索引上的值
+func (l *list) Index(index int64) *listNode {
+	var node *listNode = nil
+	var n int64
+	var iter *listIter
+	if index < 0 {
+		iter = ListGetIterator(l, AL_START_TAIL)
+		n = (-index)-1
+	} else {
+		iter = ListGetIterator(l, AL_START_HEAD)
+		n = index
+	}
+	for current:=iter.Next();nil!=current&&n>=0;current=iter.Next(){
+		node = current
+		n--
+	}
+	ListReleaseIterator(iter)
+	return node
+}
+
+//取出链表的表尾节点，并将它移动到表头，成为新的表头节点
+func (l *list) Rotate() {
+	if nil == l || l.length <= 1 {
+		return
+	}
+
+	//取出表尾
+	tail := l.tail
+	l.tail = tail.pre
+	l.tail.next = nil
+
+	//将表尾插到表头
+	tail.next = l.head
+	tail.pre = nil
+	l.head.pre = tail
+	l.head = tail
+}
+
 //迭代器
 type listIter struct {
 	next      *listNode
@@ -184,4 +252,38 @@ func (iter *listIter) Next() *listNode {
 	}
 
 	return current
+}
+
+//复制链表
+func ListDup(orig *list) (*list) {
+	//源链表为空直接返回
+	if nil == orig {
+		return nil
+	}
+
+	//初始化目的链表
+	dest := ListCreate()
+	if nil == dest {
+		return nil
+	}
+	dest.dup = orig.dup
+	dest.free = orig.free
+	dest.match = orig.match
+
+	//通过源链表获取迭代器
+	iter := ListGetIterator(orig, AL_START_HEAD)
+	for current:=iter.Next();nil!=current;current=iter.Next() {
+		var value interface{}
+		if nil != orig.dup {
+			value = orig.dup(current.GetValue())
+		} else {
+			value = current.GetValue()
+		}
+		dest.AddNodeTail(value)
+	}
+
+	//释放掉迭代器
+	ListReleaseIterator(iter)
+
+	return dest
 }

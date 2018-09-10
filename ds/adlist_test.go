@@ -1,6 +1,9 @@
 package ds
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 //go test -v adlist.go adlist_test.go --test.run=TestAddNodeHead
 func TestAddNodeHead(t *testing.T) {
@@ -52,4 +55,17 @@ func TestDeleteNode(t *testing.T) {
 	l.DeleteNode(l.tail)
 	s := l.ToSlice()
 	t.Log(s)
+}
+
+//go test -v adlist.go adlist_test.go --test.run=TestIter
+func TestIter(t *testing.T) {
+	l := ListCreate()
+	for i := 0; i < 10; i++ {
+		l.AddNodeTail(i)
+	}
+
+	iter := ListGetIterator(l, AL_START_HEAD)
+	for current := iter.Next();current!=nil;current=iter.Next() {
+		fmt.Println(current.GetValue())
+	}
 }
