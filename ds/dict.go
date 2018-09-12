@@ -290,10 +290,10 @@ func (d *dict) Rehash(step uint32) int {
 }
 
 //在超时时间范围内尽可能多的进行rehash
-func (d *dict) RehashMilliseconds(timeoutms int) int {
+func (d *dict) RehashMilliseconds(timeoutms int64) uint32 {
 	//获取毫秒为单位的时间戳
 	startTime := util.TimeInMilliseconds()
-	var rehashTimes = 0
+	var rehashTimes uint32 = 0
 	for d.Rehash(100) != 0 { //每次100步
 		rehashTimes += 100
 		if util.TimeInMilliseconds()-startTime > timeoutms { //超时即退出
