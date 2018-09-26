@@ -54,7 +54,7 @@ func TestIter(t *testing.T) {
 	}
 
 	iter := ListGetIterator(l, AL_START_HEAD)
-	for current := iter.Next();current!=nil;current=iter.Next() {
+	for current := iter.Next(); current != nil; current = iter.Next() {
 		fmt.Println(current.GetValue())
 	}
 }
@@ -122,7 +122,6 @@ func TestRotate(t *testing.T) {
 	}
 
 	l.Rotate()
-
 	l.Print(AL_START_HEAD)
 
 	l.Print(AL_START_TAIL)

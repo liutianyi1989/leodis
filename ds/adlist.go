@@ -9,29 +9,29 @@ const (
 
 //链表节点
 type listNode struct {
-	pre   *listNode		//前置节点
-	next  *listNode		//后置节点
-	value interface{}	//节点值
+	pre   *listNode   //前置节点
+	next  *listNode   //后置节点
+	value interface{} //节点值
 }
 
-func (node *listNode) GetValue() (interface{}) {
+func (node *listNode) GetValue() interface{} {
 	return node.value
 }
 
 //持有链表结构
 type list struct {
 	//指向表头节点
-	head   *listNode
+	head *listNode
 	//指向表尾节点
-	tail   *listNode
+	tail *listNode
 	//记录链表长度
 	length int64
 	//节点值复制函数
-	dup    func(ptr interface{}) interface{}
+	dup func(ptr interface{}) interface{}
 	//节点值释放函数
-	free   func(ptr interface{})
+	free func(ptr interface{})
 	//节点值对比函数
-	match  func(ptr interface{}, key interface{}) bool
+	match func(ptr interface{}, key interface{}) bool
 }
 
 //创建链表
@@ -65,19 +65,20 @@ func ListRelease(l *list) {
 func (l *list) Print(direction int) {
 	//获取迭代器
 	iter := ListGetIterator(l, direction)
-	for cur:=iter.Next();nil!=cur;cur=iter.Next(){
-		fmt.Println(cur.GetValue())
+	for cur := iter.Next(); nil != cur; cur = iter.Next() {
+		fmt.Printf("%+v-", cur.GetValue())
 	}
+	fmt.Println()
 }
 
 //从表头方向插入节点
 func (l *list) AddNodeHead(v interface{}) {
 	//为节点分配内存
 	node := &listNode{value: v}
-	if l.length == 0 {//插入空链表
+	if l.length == 0 { //插入空链表
 		node.pre, node.next = nil, nil
 		l.head, l.tail = node, node
-	} else {//插入非空链表
+	} else { //插入非空链表
 		node.pre, node.next = nil, l.head
 		//维护表头
 		l.head.pre = node
@@ -91,10 +92,10 @@ func (l *list) AddNodeHead(v interface{}) {
 func (l *list) AddNodeTail(v interface{}) {
 	//为节点分配内存
 	node := &listNode{value: v}
-	if l.length == 0 {//插入空链表
+	if l.length == 0 { //插入空链表
 		node.pre, node.next = nil, nil
 		l.head, l.tail = node, node
-	} else {//插入非空链表
+	} else { //插入非空链表
 		node.pre, node.next = l.tail, nil
 		//维护表尾
 		l.tail.next = node
@@ -144,14 +145,14 @@ func (l *list) DeleteNode(node *listNode) {
 	if 0 == l.length || nil == node {
 		return
 	}
-	if nil != node.pre {//节点非表头
+	if nil != node.pre { //节点非表头
 		node.pre.next = node.next
-	} else {//节点是表头
+	} else { //节点是表头
 		l.head = node.next
 	}
-	if nil != node.next {//节点非表尾
+	if nil != node.next { //节点非表尾
 		node.next.pre = node.pre
-	} else {//节点是表尾
+	} else { //节点是表尾
 		l.tail = node.pre
 	}
 	if nil != l.free {
@@ -172,13 +173,13 @@ func (l *list) SearchKey(key interface{}) *listNode {
 	//初始化迭代器
 	iter := ListGetIterator(l, AL_START_HEAD)
 	//迭代查找
-	for current:=iter.Next();nil!=current;current=iter.Next() {
-		if nil != l.match {//链表有匹配方法
+	for current := iter.Next(); nil != current; current = iter.Next() {
+		if nil != l.match { //链表有匹配方法
 			if l.match(current.GetValue(), key) {
 				node = current
 				break
 			}
-		} else {//链表无匹配方法
+		} else { //链表无匹配方法
 			if current.GetValue() == key {
 				node = current
 				break
@@ -195,15 +196,15 @@ func (l *list) Index(index int64) *listNode {
 	var node *listNode = nil
 	var n int64
 	var iter *listIter
-	if index < 0 {//从表尾方向查找
+	if index < 0 { //从表尾方向查找
 		iter = ListGetIterator(l, AL_START_TAIL)
-		n = (-index)-1 //例如：index为-1则n为0
-	} else {//从表头方向查找
+		n = (-index) - 1 //例如：index为-1则n为0
+	} else { //从表头方向查找
 		iter = ListGetIterator(l, AL_START_HEAD)
 		n = index
 	}
 	//利用迭代器查找
-	for current:=iter.Next();nil!=current&&n>=0;current=iter.Next(){
+	for current := iter.Next(); nil != current && n >= 0; current = iter.Next() {
 		node = current
 		//计数减一，当n为负数时break，则当前node指向头或尾节点
 		n--
@@ -234,7 +235,7 @@ func (l *list) Rotate() {
 }
 
 //复制链表
-func (l *list)Dup() (*list) {
+func (l *list) Dup() *list {
 	//源链表为空直接返回
 	if nil == l {
 		return nil
@@ -252,9 +253,9 @@ func (l *list)Dup() (*list) {
 
 	//通过源链表获取迭代器
 	iter := ListGetIterator(l, AL_START_HEAD)
-	for current:=iter.Next();nil!=current;current=iter.Next() {
+	for current := iter.Next(); nil != current; current = iter.Next() {
 		var value interface{}
-		if nil != l.dup {//链表存在复制函数
+		if nil != l.dup { //链表存在复制函数
 			value = l.dup(current.GetValue())
 		} else {
 			value = current.GetValue()
@@ -272,7 +273,7 @@ func (l *list)Dup() (*list) {
 //迭代器
 type listIter struct {
 	//指向下一个节点，通过Next方法返回
-	next      *listNode
+	next *listNode
 	//迭代方向
 	direction int
 }
@@ -280,9 +281,9 @@ type listIter struct {
 //获取迭代器
 func ListGetIterator(l *list, direction int) *listIter {
 	var listIter = &listIter{direction: direction}
-	if direction == AL_START_HEAD {//从表头开始迭代
+	if direction == AL_START_HEAD { //从表头开始迭代
 		listIter.next = l.head
-	} else {//从表尾开始迭代
+	} else { //从表尾开始迭代
 		listIter.next = l.tail
 	}
 	return listIter

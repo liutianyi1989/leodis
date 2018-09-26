@@ -21,13 +21,13 @@ var (
 	dictForceResizeRatio = 5
 )
 
-//哈希表节点
+//键值对节点
 type dictEntry struct {
 	//键
 	key interface{}
 	//值
 	value interface{}
-	//指向下个哈希表节点，形成链表
+	//指向下个哈希表节点，形成单链表
 	next *dictEntry
 }
 
@@ -49,11 +49,11 @@ type dictType struct {
 
 //哈希表
 type dictht struct {
-	//哈希表节点数组
+	//哈希表桶数组
 	table []*dictEntry
-	//哈希表大小
+	//哈希表中桶的个数
 	size uint32
-	//哈希表大小掩码，用于计算哈希值，总是等于size-1
+	//哈希表桶个数掩码，用于计算桶的索引号，总是等于size-1
 	sizemask uint32
 	//哈希表已有节点数量
 	used uint32
@@ -345,7 +345,7 @@ func (d *dict) AddRaw(key interface{}) *dictEntry {
 	}
 
 	//键存在则直接返回
-	if d.keyIndex(key) < 0 {
+	if _, isExist := d.keyIndex(key); isExist {
 		return nil
 	}
 
@@ -517,7 +517,7 @@ func (d *dict) genericDelete(key interface{}, nofree bool) int {
  * 如果 key 已经存在于哈希表，那么返回 -1
  * T = O(N)
  */
-func (d *dict) keyIndex(key interface{}) uint32 {
+func (d *dict) keyIndex(key interface{}) (uint32, bool) {
 	//判断字典是否需要扩容
 	d.expandIfNeeded()
 
@@ -531,7 +531,7 @@ func (d *dict) keyIndex(key interface{}) uint32 {
 		//遍历查找桶中结点
 		for de := d.ht[tableNum].table[idx]; nil != de; de = de.next {
 			if d.CompareKeys(de.key, key) {
-				return -1
+				return idx, true
 			}
 		}
 		//走到这里说明0号哈希表已经找完了
@@ -541,7 +541,7 @@ func (d *dict) keyIndex(key interface{}) uint32 {
 		}
 	}
 
-	return idx
+	return idx, false
 }
 
 /*
